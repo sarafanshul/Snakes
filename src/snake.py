@@ -4,6 +4,8 @@ import pygame
 import random
 import tkinter as tk
 from tkinter import messagebox
+import os ,sys
+# initialize
 
 width = 500
 height = 500
@@ -13,8 +15,10 @@ rows = 20
 
 
 class cube():
+
     rows = 20
     w = 500
+    
     def __init__(self, start, dirnx=1, dirny=0, color=(255,0,0)):
         self.pos = start
         self.dirnx = dirnx
@@ -44,8 +48,8 @@ class cube():
 
 
 class snake():
-    body = []
-    turns = {}
+    body = [] # use deque insted
+    turns = {} # default dicts
     
     def __init__(self, color, pos):
         #pos is given as coordinates on the grid ex (1,5)
@@ -155,25 +159,38 @@ def randomSnack(rows, item):
         x = random.randrange(1,rows-1)
         y = random.randrange(1,rows-1)
         if len(list(filter(lambda z:z.pos == (x,y), positions))) > 0:
-               continue
+            continue
         else:
-               break
+            break
 
     return (x,y)
 
 
 def main():
     global s, snack, win
+
+    # w = 500 ,h = 500
     win = pygame.display.set_mode((width,height))
-    s = snake((255,0,0), (10,10))
+    
+    # add random in position and change color
+    #          (color ,   position)
+    color = (255,0,0)
+    position  = (10 ,10) # add random here
+    s = snake(color,position)
+
     s.addCube()
     snack = cube(randomSnack(rows,s), color=(0,255,0))
     flag = True
     clock = pygame.time.Clock()
     
     while flag:
-        pygame.time.delay(50)
+        # delay is ~ refresh rate (default = 10)
+        pygame.time.delay(10)
+        
+        # tick(value) ,value proportional to speed of game(FPS)
         clock.tick(10)
+        # print(clock.get_fps())
+
         s.move()
         headPos = s.head.pos
         if headPos[0] >= 20 or headPos[0] < 0 or headPos[1] >= 20 or headPos[1] < 0:
@@ -187,8 +204,22 @@ def main():
         for x in range(len(s.body)):
             if s.body[x].pos in list(map(lambda z:z.pos,s.body[x+1:])):
                 print("Score:", len(s.body))
-                s.reset((10,10))
-                break
+
+                tk.Tk().wm_withdraw()
+                result = messagebox.askokcancel('Restart the Game ?')
+                if result == True: # restart the program using exce function
+                            # The exec functions of Unix-like operating 
+                            #   systems are a collection of functions that
+                            #   causes the running process to be completely 
+                            #   replaced by the program passed as an argument to the function
+                    os.execl(sys.executable,sys.executable, *sys.argv)
+                    # pass
+                else:
+                    pygame.quit()
+                    exit()
+                    break
+                # s.reset((10,10))
+                # break
                     
         redrawWindow()
 
