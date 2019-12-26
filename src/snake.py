@@ -1,20 +1,28 @@
 '''
 TODO ->
-- add increasing speed
-- add good graphics
-- add promt cleanup of default texts
-- add titlebar change
-- 
+- add sounds
+- add more seeds
+- added increasing speed per level(s) +
+- added good graphics +
+- added promt cleanup of default texts +
+- added titlebar change +
+- changed the eyes +
+- changed the colors +
+- generalized the settings +
+
 '''
 
 import math
 import random
-import pygame
 import random
-import tkinter as tk
-from tkinter import messagebox
 import os ,sys
-from pygame.locals import *
+import contextlib # for removing default text {it redirects Output to None}
+with contextlib.redirect_stdout(None):
+	import pygame
+	from pygame.locals import *
+	import tkinter as tk
+	from tkinter import messagebox
+
 # initialize
 # pygame.init()
 
@@ -37,7 +45,7 @@ class cube():
 	w = width
 	h = height
 	
-	def __init__(self, start, dirnx=1, dirny=0, color=(241,196,15)):
+	def __init__(self, start, dirnx=1, dirny=0, color=(232, 23, 93)):
 		self.pos = start
 		self.dirnx = dirnx
 		self.dirny = dirny # "L", "R", "U", "D"
@@ -51,7 +59,7 @@ class cube():
 
 	def draw(self, surface, eyes=False):
 		# dis = self.w // self.rows
-		dis_x = self.w // self.rows
+		dis_x = self.w // self.rows # len,h of cube
 		dis_y = self.h // self.cols
 
 		i = self.pos[0]
@@ -60,9 +68,10 @@ class cube():
 		pygame.draw.rect(surface, self.color, (i*dis_x+1,j*dis_y+1,dis_x-2,dis_y-2))
 		if eyes:
 			centre = dis_x//2 
-			radius = (rows+cols)//30 # add cube size for radius
-			circleMiddle = (i*dis_x + centre-radius,j*dis_x+8)
-			circleMiddle2 = (i*dis_y + dis_y -radius*2, j*dis_y+8)
+			radius = (rows+cols)//11 # add cube size for radius
+			rad = radius+(rows+cols)//20
+			circleMiddle = (i*dis_x + centre-rad,j*dis_x+8)
+			circleMiddle2 = (i*dis_y + centre+rad, j*dis_y+8)
 			pygame.draw.circle(surface, (0,0,0), circleMiddle, radius)
 			pygame.draw.circle(surface, (0,0,0), circleMiddle2, radius)
 		
@@ -182,7 +191,7 @@ def randomSnack(rows, cols, item):
 	while True:
 		x = random.randrange(1,rows-1)
 		y = random.randrange(1,cols-1)
-		if len(list(filter(lambda z:z.pos == (x,y), positions))) > 0:
+		if len(list(filter(lambda z:z.pos == (x,y), positions))) > 0: # to check if no snack spawns on snake
 			continue
 		else:
 			break
@@ -195,27 +204,31 @@ def main():
 
 	# w = 500 ,h = 500
 	win = pygame.display.set_mode((width,height))
+	pygame.display.set_caption('Snake ...')
+	icon = pygame.image.load('static/icon.jpg')
+	pygame.display.set_icon(icon)
 	# win = pygame.display.set_mode((width,height) ,RESIZABLE)
 	
 	# add random in position and change color
 	#          (color ,   position)
 
-	color = (255, 242, 0,1.0) # matt Yellow
+	color = (232, 23, 93) # matt Pink
 	position  = (10 ,10) # add random here
 	s = snake(color,position)
 
 	s.addCube()
-	snack = cube(randomSnack(rows,cols,s), color=(0,255,0))
+	snack_color = (69, 173, 168)
+	snack = cube(randomSnack(rows,cols,s), color = snack_color)
 	flag = True
 	clock = pygame.time.Clock()
-	
+	fps = 10
+
 	while flag:
 		# delay is ~ refresh rate (default = 10)
 		pygame.time.delay(10)
 		
 		# tick(value) ,value proportional to speed of game(FPS)
-		fps = 10
-		clock.tick(fps)
+		clock.tick(int(fps))
 		# print(clock.get_fps())
 
 		s.move()
@@ -238,7 +251,8 @@ def main():
 
 		if s.body[0].pos == snack.pos:
 			s.addCube()
-			snack = cube(randomSnack(rows,cols,s), color=(0,255,0))
+			fps += 0.5
+			snack = cube(randomSnack(rows,cols,s), color=snack_color)
 			
 		for x in range(len(s.body)):
 			if s.body[x].pos in list(map(lambda z:z.pos,s.body[x+1:])):
